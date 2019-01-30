@@ -14,6 +14,7 @@ def wxbot_receive_raw(rawmsg):
 	receive_wx_text(msg)
 
 from aiocqhttp import CQHttp
+import asyncio
 
 qqbot = CQHttp(access_token='',
              enable_http_post=False)
@@ -22,9 +23,16 @@ qqbot = CQHttp(access_token='',
 async def qq_handle_msg(context):
 	if context['post_type'] == 'message' and context['message_type'] == 'group' and context['group_id'] == config['QqGroupId']:
 		print(context)
+		msg = {}
+		msg['sender'] = context['sender']['nickname']
+		msg['text'] = context['message']
+		receive_qq_text(msg)
 
 def receive_wx_text(msg):
-	wxgroup.send('received:[{}] {}'.format(msg['sender'], msg['text']))
+	asyncio.run(qqbot.send_group_msg(group_id=config['QqGroupId'], message='【微信】{}|{}'.format(msg['sender'], msg['text'])))
+
+def receive_qq_text(msg):
+	wxgroup.send('【QQ】{}|{}'.format(msg['sender'], msg['text']))
 
 qqbot.run(host='127.0.0.1', port=8194)
 wxbot.join()
